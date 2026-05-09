@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puzzle del Artista - Ordena la Pintura</title>
+    <title>Puzzle Drag & Drop - Ordena la Pintura</title>
     <style>
         * {
             user-select: none;
-            box-sizing: border-box;
         }
 
         body {
@@ -26,14 +25,13 @@
             border-radius: 30px;
             padding: 25px;
             backdrop-filter: blur(5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
 
         .puzzle-wrapper {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 30px;
+            gap: 40px;
             align-items: flex-start;
         }
 
@@ -41,7 +39,6 @@
             background: #2d2d44;
             border-radius: 20px;
             padding: 20px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.2);
         }
 
         .pieces-grid {
@@ -55,7 +52,6 @@
             background: #1e1e2a;
             border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
         .board-grid {
@@ -68,36 +64,51 @@
             border-radius: 15px;
         }
 
-        .piece, .slot {
+        .piece {
             width: 100px;
             height: 100px;
             background-size: 300px 300px;
             background-repeat: no-repeat;
             border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .piece {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            cursor: grab;
+            transition: transform 0.2s;
             border: 2px solid #ffd966;
         }
 
-        .piece:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        .piece:active {
+            cursor: grabbing;
+        }
+
+        .piece.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
         }
 
         .slot {
+            width: 100px;
+            height: 100px;
             background-color: #2a2a3a;
             border: 2px dashed #ffd966;
-            box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .slot.drag-over {
+            background-color: #4caf50;
+            border: 2px solid #fff;
+            transform: scale(1.02);
         }
 
         .slot.filled {
             border: 2px solid #4caf50;
-            box-shadow: 0 0 12px rgba(76,175,80,0.5);
-            cursor: pointer;
+            background-size: 300px 300px;
+            background-repeat: no-repeat;
+        }
+
+        .slot.filled.drag-over {
+            background-color: #ff5252;
+            border-color: #ff0000;
         }
 
         .info-panel {
@@ -135,10 +146,6 @@
             color: #b45309;
         }
 
-        .biography p {
-            line-height: 1.5;
-        }
-
         .reset-btn {
             background: #ffd966;
             border: none;
@@ -149,7 +156,6 @@
             cursor: pointer;
             margin-top: 20px;
             transition: 0.2s;
-            color: #1a1a2e;
         }
 
         .reset-btn:hover {
@@ -178,24 +184,26 @@
 </head>
 <body>
 <div class="game-container">
-    <h2>🖼️ Ordena la obra de arte 🎨</h2>
+    <h2>🖼️ Arrastra las piezas a su lugar 🎨</h2>
     <div class="puzzle-wrapper">
         <div class="pieces-area">
+            <h3 style="color:white; text-align:center;">📦 Piezas</h3>
             <div class="pieces-grid" id="piecesContainer"></div>
         </div>
 
         <div class="board-area">
+            <h3 style="color:white; text-align:center;">🎯 Colócalas aquí</h3>
             <div class="board-grid" id="boardContainer"></div>
         </div>
     </div>
 
     <div class="info-panel">
-        <div class="message" id="statusMessage">📌 Haz clic en las piezas para ordenarlas</div>
+        <div class="message" id="statusMessage">🎯 Arrastra una pieza y suéltala en el cuadro correcto</div>
         <div class="biography" id="biography">
             <h3>🎨 Sobre el artista</h3>
             <div id="bioText">
-                <p><strong>Palmira</strong> (la artista de esta obra) es una talentosa pintora cuya obra refleja la belleza y emoción de su tierra. Sus cuadros se caracterizan por el uso vibrante del color y la profundidad de sus paisajes. Esta pintura en particular representa la conexión entre la naturaleza y el espíritu humano, invitando al espectador a encontrar armonía en el caos.</p>
-                <p>⭐ <strong>Dato curioso:</strong> ¡Esta obra fue creada en un solo día, durante una tarde de inspiración frente al atardecer!</p>
+                <p><strong>Palmira</strong> es una talentosa pintora cuya obra refleja la belleza y emoción de su tierra. Sus cuadros se caracterizan por el uso vibrante del color y la profundidad de sus paisajes.</p>
+                <p>⭐ <strong>Dato curioso:</strong> ¡Esta obra fue creada en un solo día, durante una tarde de inspiración!</p>
             </div>
         </div>
         <button class="reset-btn" id="resetBtn">🔄 Mezclar piezas / Reiniciar</button>
@@ -203,12 +211,13 @@
 </div>
 
 <script>
-    // ✅ URL CORRECTA DE TU IMAGEN EN GITHUB
-    const PAINTING_URL = "https://raw.githubusercontent.com/Gustavo-Castao/rompecabezas-palmira/main/PINTURA_PALMIRA.jpg";
+    // 🔧 CAMBIA ESTA LÍNEA por la ruta de TU imagen
+    const PAINTING_URL = "PINTURA_PALMIRA.jpg";  // Misma carpeta o URL completa
     
     const IMG_W = 300;
     const IMG_H = 300;
     
+    // Crear las 9 piezas
     const piecesData = [];
     for (let row = 0; row < 3; row++) {
         for (let col = 0; col < 3; col++) {
@@ -241,6 +250,9 @@
     const biographyDiv = document.getElementById('biography');
     const resetBtn = document.getElementById('resetBtn');
     
+    let draggedPiece = null;
+    let draggedPieceId = null;
+    
     function setPieceBackground(element, bgPos) {
         element.style.backgroundImage = `url('${PAINTING_URL}')`;
         element.style.backgroundSize = `${IMG_W}px ${IMG_H}px`;
@@ -253,34 +265,26 @@
             const pieceDiv = document.createElement('div');
             pieceDiv.className = 'piece';
             setPieceBackground(pieceDiv, piece.bgPos);
-            pieceDiv.onclick = () => {
-                const emptySlotIndex = boardSlots.findIndex(slot => slot === null);
-                if (emptySlotIndex !== -1) {
-                    if (tryPlacePiece(piece, emptySlotIndex)) {
-                        availablePieces.splice(idx, 1);
-                        renderPieces();
-                        renderBoard();
-                        checkWin();
-                    } else {
-                        statusMessage.innerText = '❌ Esa pieza no va en ese lugar';
-                        setTimeout(() => {
-                            if(!checkIfComplete()) statusMessage.innerText = '📌 Haz clic en las piezas para ordenarlas';
-                        }, 1500);
-                    }
-                } else {
-                    statusMessage.innerText = '⚠️ Tablero lleno. Si está mal, reinicia.';
-                }
-            };
+            pieceDiv.setAttribute('draggable', 'true');
+            pieceDiv.setAttribute('data-piece-id', piece.id);
+            pieceDiv.setAttribute('data-piece-index', idx);
+            
+            pieceDiv.addEventListener('dragstart', (e) => {
+                draggedPiece = piece;
+                draggedPieceId = idx;
+                pieceDiv.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', JSON.stringify({id: piece.id, index: idx}));
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            
+            pieceDiv.addEventListener('dragend', (e) => {
+                pieceDiv.classList.remove('dragging');
+                draggedPiece = null;
+                draggedPieceId = null;
+            });
+            
             piecesContainer.appendChild(pieceDiv);
         });
-    }
-    
-    function tryPlacePiece(piece, slotIndex) {
-        if (boardSlots[slotIndex] === null && piece.id === slotIndex) {
-            boardSlots[slotIndex] = piece;
-            return true;
-        }
-        return false;
     }
     
     function renderBoard() {
@@ -289,45 +293,89 @@
             const slotDiv = document.createElement('div');
             slotDiv.className = 'slot';
             const piece = boardSlots[i];
+            
             if (piece !== null) {
                 slotDiv.classList.add('filled');
                 setPieceBackground(slotDiv, piece.bgPos);
-                slotDiv.onclick = () => {
-                    if (!checkIfComplete()) {
-                        const pieceToReturn = boardSlots[i];
-                        if (pieceToReturn) {
-                            boardSlots[i] = null;
-                            availablePieces.push(pieceToReturn);
-                            renderPieces();
-                            renderBoard();
-                            statusMessage.innerText = '🔄 Pieza devuelta al banco';
-                            setTimeout(() => {
-                                if(!checkIfComplete()) statusMessage.innerText = '📌 Continúa ordenando';
-                            }, 1200);
-                            if (biographyDiv.style.display === 'block') {
-                                biographyDiv.style.display = 'none';
-                            }
-                        }
-                    }
-                };
-            } else {
-                slotDiv.style.backgroundColor = "#2a2a3a";
-                slotDiv.style.backgroundImage = "none";
-                slotDiv.onclick = () => {
-                    statusMessage.innerText = '✨ Selecciona una pieza del banco y haz clic en ella';
-                };
             }
+            
+            slotDiv.setAttribute('data-slot-index', i);
+            
+            slotDiv.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                slotDiv.classList.add('drag-over');
+            });
+            
+            slotDiv.addEventListener('dragleave', (e) => {
+                slotDiv.classList.remove('drag-over');
+            });
+            
+            slotDiv.addEventListener('drop', (e) => {
+                e.preventDefault();
+                slotDiv.classList.remove('drag-over');
+                
+                if (!draggedPiece) return;
+                
+                const slotIndex = parseInt(slotDiv.getAttribute('data-slot-index'));
+                const targetPiece = boardSlots[slotIndex];
+                
+                // Caso 1: Slot vacío
+                if (targetPiece === null) {
+                    if (draggedPiece.id === slotIndex) {
+                        // Colocar pieza correctamente
+                        boardSlots[slotIndex] = draggedPiece;
+                        availablePieces.splice(draggedPieceId, 1);
+                        renderPieces();
+                        renderBoard();
+                        statusMessage.innerText = '✅ ¡Bien colocado!';
+                        setTimeout(() => {
+                            if(!checkWin()) statusMessage.innerText = '🎯 Sigue arrastrando';
+                        }, 1000);
+                        checkWin();
+                    } else {
+                        statusMessage.innerText = '❌ Esta pieza no pertenece aquí';
+                        setTimeout(() => {
+                            if(!checkWin()) statusMessage.innerText = '🎯 Arrastra la pieza correcta';
+                        }, 1000);
+                    }
+                } 
+                // Caso 2: Slot ocupado (intercambiar)
+                else {
+                    if (draggedPiece.id === slotIndex && targetPiece.id === draggedPieceId) {
+                        // Intercambiar piezas
+                        boardSlots[slotIndex] = draggedPiece;
+                        availablePieces[draggedPieceId] = targetPiece;
+                        renderPieces();
+                        renderBoard();
+                        statusMessage.innerText = '🔄 ¡Intercambio exitoso!';
+                        setTimeout(() => {
+                            if(!checkWin()) statusMessage.innerText = '🎯 Continúa';
+                        }, 1000);
+                        checkWin();
+                    } else {
+                        statusMessage.innerText = '❌ No puedes intercambiar esas piezas';
+                        setTimeout(() => {
+                            if(!checkWin()) statusMessage.innerText = '🎯 Arrastra la pieza correcta';
+                        }, 1000);
+                    }
+                }
+                
+                draggedPiece = null;
+                draggedPieceId = null;
+            });
+            
             boardContainer.appendChild(slotDiv);
         }
     }
     
-    function checkIfComplete() {
-        return boardSlots.every((slot, idx) => slot !== null && slot.id === idx);
-    }
-    
     function checkWin() {
-        if (checkIfComplete()) {
-            statusMessage.innerHTML = '🎉 ¡ENHORABUENA! Has ordenado la obra maestra 🎉';
+        const isComplete = boardSlots.every((slot, idx) => {
+            return slot !== null && slot.id === idx;
+        });
+        
+        if (isComplete) {
+            statusMessage.innerHTML = '🎉 ¡OBRA COMPLETA! 🎉';
             biographyDiv.style.display = 'block';
             return true;
         }
@@ -341,21 +389,19 @@
         boardSlots = Array(9).fill(null);
         renderPieces();
         renderBoard();
-        statusMessage.innerHTML = '📌 Nuevo juego! Coloca cada pieza en su posición correcta.';
+        statusMessage.innerHTML = '🎯 Arrastra las piezas a su lugar correcto';
         biographyDiv.style.display = 'none';
     }
     
-    function init() {
-        resetGame();
-        resetBtn.addEventListener('click', resetGame);
-        // Verificar que la imagen cargue
-        const testImg = new Image();
-        testImg.onload = () => console.log('Imagen cargada correctamente');
-        testImg.onerror = () => statusMessage.innerHTML = '⚠️ Error: No se pudo cargar la imagen. Verifica la URL.';
-        testImg.src = PAINTING_URL;
-    }
+    // Verificar que la imagen cargue
+    const testImg = new Image();
+    testImg.onerror = () => {
+        statusMessage.innerHTML = '⚠️ No se encuentra la imagen. Coloca "PINTURA_PALMIRA.jpg" en la misma carpeta';
+    };
+    testImg.src = PAINTING_URL;
     
-    init();
+    resetBtn.addEventListener('click', resetGame);
+    resetGame();
 </script>
 </body>
 </html>
