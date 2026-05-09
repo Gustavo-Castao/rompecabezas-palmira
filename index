@@ -37,7 +37,6 @@
             align-items: flex-start;
         }
 
-        /* Área donde se colocan las piezas desordenadas */
         .pieces-area {
             background: #2d2d44;
             border-radius: 20px;
@@ -52,7 +51,6 @@
             width: 330px;
         }
 
-        /* Área donde va el rompecabezas resuelto (grid vacío) */
         .board-area {
             background: #1e1e2a;
             border-radius: 20px;
@@ -99,10 +97,9 @@
         .slot.filled {
             border: 2px solid #4caf50;
             box-shadow: 0 0 12px rgba(76,175,80,0.5);
-            cursor: default;
+            cursor: pointer;
         }
 
-        /* Mensaje y biografía */
         .info-panel {
             margin-top: 30px;
             text-align: center;
@@ -183,25 +180,22 @@
 <div class="game-container">
     <h2>🖼️ Ordena la obra de arte 🎨</h2>
     <div class="puzzle-wrapper">
-        <!-- Piezas desordenadas (banco) -->
         <div class="pieces-area">
             <div class="pieces-grid" id="piecesContainer"></div>
         </div>
 
-        <!-- Tablero vacío (posición final) -->
         <div class="board-area">
             <div class="board-grid" id="boardContainer"></div>
         </div>
     </div>
 
     <div class="info-panel">
-        <div class="message" id="statusMessage">📌 Arrastra o haz clic en las piezas para ordenarlas</div>
+        <div class="message" id="statusMessage">📌 Haz clic en las piezas para ordenarlas</div>
         <div class="biography" id="biography">
             <h3>🎨 Sobre el artista</h3>
             <div id="bioText">
-                <!-- Aquí se cargará la biografía cuando se complete el puzzle -->
-                <p><strong>Vincent van Gogh</strong> (1853-1890) fue un pintor neerlandés, una de las figuras más emblemáticas del postimpresionismo. Su obra, vibrante y emocional, influyó profundamente en el arte del siglo XX. Entre sus pinturas más famosas se encuentran <em>La noche estrellada</em>, <em>Los girasoles</em> y <em>La habitación de Arlés</em>. A pesar de sufrir problemas de salud mental y vivir en la pobreza, creó más de 2,100 obras, incluyendo 860 óleos. Hoy es considerado un genio del arte universal.</p>
-                <p>⭐ <strong>Dato curioso:</strong> ¡Solo vendió una pintura en vida! Su fama llegó después de su muerte.</p>
+                <p><strong>Palmira</strong> (la artista de esta obra) es una talentosa pintora cuya obra refleja la belleza y emoción de su tierra. Sus cuadros se caracterizan por el uso vibrante del color y la profundidad de sus paisajes. Esta pintura en particular representa la conexión entre la naturaleza y el espíritu humano, invitando al espectador a encontrar armonía en el caos.</p>
+                <p>⭐ <strong>Dato curioso:</strong> ¡Esta obra fue creada en un solo día, durante una tarde de inspiración frente al atardecer!</p>
             </div>
         </div>
         <button class="reset-btn" id="resetBtn">🔄 Mezclar piezas / Reiniciar</button>
@@ -209,24 +203,20 @@
 </div>
 
 <script>
-    // Configuración: 3x3 puzzle (9 piezas)
-    // URL de tu pintura (¡CAMBIA ESTO POR LA RUTA DE TU IMAGEN!)
-    const PAINTING_URL = "URL_DE_TU_PINTURA";  // <--- REEMPLAZA AQUÍ con tu imagen (ej: "mi_pintura.jpg")
+    // ✅ URL CORRECTA DE TU IMAGEN EN GITHUB
+    const PAINTING_URL = "https://raw.githubusercontent.com/Gustavo-Castao/rompecabezas-palmira/main/PINTURA_PALMIRA.jpg";
     
-    // Tamaño original del canvas imaginario (para calcular background-position)
     const IMG_W = 300;
     const IMG_H = 300;
     
-    // Definir las 9 piezas con su posición correcta (index 0 a 8)
-    // Cada pieza tiene: id (posición correcta en el tablero), backgroundPosition
     const piecesData = [];
     for (let row = 0; row < 3; row++) {
         for (let col = 0; col < 3; col++) {
-            const correctIndex = row * 3 + col; // 0 a 8
+            const correctIndex = row * 3 + col;
             const xPos = -col * 100;
             const yPos = -row * 100;
             piecesData.push({
-                id: correctIndex,       // su lugar correcto
+                id: correctIndex,
                 bgPos: `${xPos}px ${yPos}px`,
                 row: row,
                 col: col
@@ -234,7 +224,6 @@
         }
     }
     
-    // Mezclar array (para el banco de piezas)
     function shuffleArray(arr) {
         for (let i = arr.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -243,69 +232,50 @@
         return arr;
     }
     
-    // Estado del juego
-    let availablePieces = [];     // piezas que aún no se han colocado (objetos)
-    let boardSlots = [];          // array de 9 posiciones: null o el objeto pieza que está colocada
+    let availablePieces = [];
+    let boardSlots = [];
     
-    // Elementos DOM
     const piecesContainer = document.getElementById('piecesContainer');
     const boardContainer = document.getElementById('boardContainer');
     const statusMessage = document.getElementById('statusMessage');
     const biographyDiv = document.getElementById('biography');
     const resetBtn = document.getElementById('resetBtn');
     
-    // Guardar imagen de fondo para todas las piezas (se aplica dinámicamente)
     function setPieceBackground(element, bgPos) {
-        if (PAINTING_URL && PAINTING_URL !== "URL_DE_TU_PINTURA") {
-            element.style.backgroundImage = `url('${PAINTING_URL}')`;
-        } else {
-            // Si no pusieron imagen real, usamos una imagen de ejemplo con colores
-            element.style.backgroundImage = "url('https://via.placeholder.com/300/8B4513/FFFFFF?text=PINTURA')";
-            if(statusMessage.innerText.includes("📌")) statusMessage.innerText = "⚠️ Reemplaza 'URL_DE_TU_PINTURA' con tu imagen real ⚠️";
-        }
+        element.style.backgroundImage = `url('${PAINTING_URL}')`;
         element.style.backgroundSize = `${IMG_W}px ${IMG_H}px`;
         element.style.backgroundPosition = bgPos;
     }
     
-    // Renderizar banco de piezas disponibles
     function renderPieces() {
         piecesContainer.innerHTML = '';
         availablePieces.forEach((piece, idx) => {
             const pieceDiv = document.createElement('div');
             pieceDiv.className = 'piece';
             setPieceBackground(pieceDiv, piece.bgPos);
-            pieceDiv.setAttribute('data-piece-id', piece.id);
-            pieceDiv.setAttribute('data-bank-index', idx);
-            // Evento click para colocar la pieza en el primer slot vacío disponible (o podemos hacer más preciso)
-            pieceDiv.onclick = (e) => {
-                e.stopPropagation();
-                // Buscar el primer slot vacío en el tablero
+            pieceDiv.onclick = () => {
                 const emptySlotIndex = boardSlots.findIndex(slot => slot === null);
                 if (emptySlotIndex !== -1) {
-                    // Colocar esta pieza en ese slot
                     if (tryPlacePiece(piece, emptySlotIndex)) {
-                        // Remover del banco
                         availablePieces.splice(idx, 1);
                         renderPieces();
                         renderBoard();
                         checkWin();
                     } else {
-                        statusMessage.innerText = '❌ Esa pieza no va en ese lugar. ¡Sigue intentando!';
+                        statusMessage.innerText = '❌ Esa pieza no va en ese lugar';
                         setTimeout(() => {
-                            if(!checkIfComplete()) statusMessage.innerText = '📌 Arrastra o haz clic en las piezas para ordenarlas';
+                            if(!checkIfComplete()) statusMessage.innerText = '📌 Haz clic en las piezas para ordenarlas';
                         }, 1500);
                     }
                 } else {
-                    statusMessage.innerText = '⚠️ El tablero está lleno. Si está incompleto, reinicia.';
+                    statusMessage.innerText = '⚠️ Tablero lleno. Si está mal, reinicia.';
                 }
             };
             piecesContainer.appendChild(pieceDiv);
         });
     }
     
-    // Intentar colocar pieza en un slot específico
     function tryPlacePiece(piece, slotIndex) {
-        // La pieza debe coincidir con el id (posición correcta) del slot
         if (boardSlots[slotIndex] === null && piece.id === slotIndex) {
             boardSlots[slotIndex] = piece;
             return true;
@@ -313,7 +283,6 @@
         return false;
     }
     
-    // Renderizar tablero (mostrar piezas ya colocadas y slots vacíos)
     function renderBoard() {
         boardContainer.innerHTML = '';
         for (let i = 0; i < boardSlots.length; i++) {
@@ -323,9 +292,7 @@
             if (piece !== null) {
                 slotDiv.classList.add('filled');
                 setPieceBackground(slotDiv, piece.bgPos);
-                // No permitir click para remover? Podemos permitir devolver pieza al banco (opcional)
                 slotDiv.onclick = () => {
-                    // Devolver pieza al banco si el juego no está completo
                     if (!checkIfComplete()) {
                         const pieceToReturn = boardSlots[i];
                         if (pieceToReturn) {
@@ -337,7 +304,6 @@
                             setTimeout(() => {
                                 if(!checkIfComplete()) statusMessage.innerText = '📌 Continúa ordenando';
                             }, 1200);
-                            // Ocultar biografía si estaba visible
                             if (biographyDiv.style.display === 'block') {
                                 biographyDiv.style.display = 'none';
                             }
@@ -345,43 +311,31 @@
                     }
                 };
             } else {
-                // Slot vacío
                 slotDiv.style.backgroundColor = "#2a2a3a";
                 slotDiv.style.backgroundImage = "none";
                 slotDiv.onclick = () => {
-                    statusMessage.innerText = '✨ Selecciona una pieza del banco y haz clic en ella para colocarla aquí';
+                    statusMessage.innerText = '✨ Selecciona una pieza del banco y haz clic en ella';
                 };
             }
             boardContainer.appendChild(slotDiv);
         }
     }
     
-    // Verificar si el puzzle está completo y mostrar biografía
     function checkIfComplete() {
-        const isComplete = boardSlots.every((slot, idx) => {
-            return slot !== null && slot.id === idx;
-        });
-        if (isComplete) {
-            statusMessage.innerHTML = '🎉 ¡ENHORABUENA! Has ordenado la obra maestra 🎉';
-            // Mostrar biografía con animación
-            biographyDiv.style.display = 'block';
-            return true;
-        } else {
-            biographyDiv.style.display = 'none';
-            return false;
-        }
-    }
-    
-    // Para verificar sin cambiar el mensaje principal
-    function checkIfCompleteSilent() {
         return boardSlots.every((slot, idx) => slot !== null && slot.id === idx);
     }
     
-    // Reiniciar juego (mezclar todas las piezas)
+    function checkWin() {
+        if (checkIfComplete()) {
+            statusMessage.innerHTML = '🎉 ¡ENHORABUENA! Has ordenado la obra maestra 🎉';
+            biographyDiv.style.display = 'block';
+            return true;
+        }
+        return false;
+    }
+    
     function resetGame() {
-        // Crear copia de todas las piezas
         let allPieces = [...piecesData];
-        // Mezclar todas
         allPieces = shuffleArray(allPieces);
         availablePieces = [...allPieces];
         boardSlots = Array(9).fill(null);
@@ -391,14 +345,14 @@
         biographyDiv.style.display = 'none';
     }
     
-    // Inicializar el juego
     function init() {
         resetGame();
         resetBtn.addEventListener('click', resetGame);
-        // Verificar si se cargó la imagen personalizada
-        if(PAINTING_URL === "URL_DE_TU_PINTURA") {
-            statusMessage.innerHTML = "⚠️ RECUERDA: Cambia 'URL_DE_TU_PINTURA' por la ruta de tu pintura ⚠️";
-        }
+        // Verificar que la imagen cargue
+        const testImg = new Image();
+        testImg.onload = () => console.log('Imagen cargada correctamente');
+        testImg.onerror = () => statusMessage.innerHTML = '⚠️ Error: No se pudo cargar la imagen. Verifica la URL.';
+        testImg.src = PAINTING_URL;
     }
     
     init();
