@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puzzle Drag & Drop - Ordena la Pintura</title>
+    <title>Puzzle - Obra Completa al Terminar</title>
     <style>
         * {
             user-select: none;
@@ -80,8 +80,7 @@
         }
 
         .piece.dragging {
-            opacity: 0.5;
-            cursor: grabbing;
+            opacity: 0.3;
         }
 
         .slot {
@@ -91,24 +90,18 @@
             border: 2px dashed #ffd966;
             border-radius: 12px;
             transition: all 0.2s;
-            position: relative;
         }
 
         .slot.drag-over {
             background-color: #4caf50;
             border: 2px solid #fff;
-            transform: scale(1.02);
+            transform: scale(1.05);
         }
 
         .slot.filled {
             border: 2px solid #4caf50;
             background-size: 300px 300px;
             background-repeat: no-repeat;
-        }
-
-        .slot.filled.drag-over {
-            background-color: #ff5252;
-            border-color: #ff0000;
         }
 
         .info-panel {
@@ -124,26 +117,6 @@
             border-radius: 50px;
             display: inline-block;
             font-weight: bold;
-        }
-
-        .biography {
-            background: #fef9e6;
-            border-left: 8px solid #ffd966;
-            padding: 20px;
-            margin-top: 20px;
-            border-radius: 20px;
-            color: #1e2a3a;
-            text-align: left;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            display: none;
-            animation: fadeIn 0.8s;
-        }
-
-        .biography h3 {
-            margin-top: 0;
-            color: #b45309;
         }
 
         .reset-btn {
@@ -163,72 +136,140 @@
             transform: scale(1.05);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px);}
-            to { opacity: 1; transform: translateY(0);}
-        }
-
-        h2 {
+        h2, h3 {
             text-align: center;
             color: white;
             margin-top: 0;
             margin-bottom: 20px;
         }
 
+        /* MODAL - Ventana emergente */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            animation: fadeInModal 0.5s;
+        }
+
+        .modal-content {
+            background-color: #fef9e6;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 30px;
+            width: 80%;
+            max-width: 700px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            animation: slideUp 0.5s;
+        }
+
+        .modal-content img {
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px;
+            margin: 15px 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            border: 3px solid #ffd966;
+        }
+
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #b45309;
+        }
+
+        .modal h2 {
+            color: #b45309;
+            margin-top: 0;
+        }
+
+        .modal p {
+            line-height: 1.6;
+            color: #1e2a3a;
+            text-align: left;
+        }
+
+        @keyframes fadeInModal {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         @media (max-width: 800px) {
             .piece, .slot { width: 80px; height: 80px; background-size: 240px 240px; }
             .pieces-grid { width: 270px; gap: 8px; }
             .board-grid { width: 280px; gap: 6px; }
+            .modal-content { width: 90%; margin: 15% auto; }
         }
     </style>
 </head>
 <body>
 <div class="game-container">
-    <h2>🖼️ Arrastra las piezas a su lugar 🎨</h2>
+    <h2>🖼️ ARRASTRA cada pieza a su lugar 🎨</h2>
     <div class="puzzle-wrapper">
         <div class="pieces-area">
-            <h3 style="color:white; text-align:center;">📦 Piezas</h3>
+            <h3>📦 Piezas para ordenar</h3>
             <div class="pieces-grid" id="piecesContainer"></div>
         </div>
 
         <div class="board-area">
-            <h3 style="color:white; text-align:center;">🎯 Colócalas aquí</h3>
+            <h3>🎯 Suelta aquí la pieza correcta</h3>
             <div class="board-grid" id="boardContainer"></div>
         </div>
     </div>
 
     <div class="info-panel">
-        <div class="message" id="statusMessage">🎯 Arrastra una pieza y suéltala en el cuadro correcto</div>
-        <div class="biography" id="biography">
-            <h3>🎨 Sobre el artista</h3>
-            <div id="bioText">
-                <p><strong>Palmira</strong> es una talentosa pintora cuya obra refleja la belleza y emoción de su tierra. Sus cuadros se caracterizan por el uso vibrante del color y la profundidad de sus paisajes.</p>
-                <p>⭐ <strong>Dato curioso:</strong> ¡Esta obra fue creada en un solo día, durante una tarde de inspiración!</p>
-            </div>
-        </div>
+        <div class="message" id="statusMessage">🎯 ARRASTRA una pieza (mantén clic) y SUELTA en el cuadro</div>
         <button class="reset-btn" id="resetBtn">🔄 Mezclar piezas / Reiniciar</button>
     </div>
 </div>
 
+<!-- MODAL: Ventana emergente con obra completa + biografía -->
+<div id="completionModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>🎉 ¡OBRA COMPLETA! 🎉</h2>
+        <img id="fullImage" src="" alt="Obra completa">
+        <div id="bioText">
+            <h3>🎨 Sobre la artista: Palmira</h3>
+            <p><strong>Palmira</strong> es una talentosa pintora cuya obra refleja la belleza y emoción de su tierra. Sus cuadros se caracterizan por el uso vibrante del color y la profundidad de sus paisajes.</p>
+            <p>⭐ <strong>Dato curioso:</strong> ¡Esta obra fue creada en un solo día, durante una tarde de inspiración frente al atardecer!</p>
+            <p>🖼️ <strong>"La armonía del caos"</strong> - Esta pintura representa la conexión entre la naturaleza y el espíritu humano, invitando al espectador a encontrar orden en el desorden.</p>
+        </div>
+        <button class="reset-btn" id="closeModalBtn">✨ Volver al juego ✨</button>
+    </div>
+</div>
+
 <script>
-    // 🔧 CAMBIA ESTA LÍNEA por la ruta de TU imagen
+    // 🔧 CAMBIA ESTA LÍNEA por tu imagen
     const PAINTING_URL = "PINTURA_PALMIRA.jpg";  // Misma carpeta o URL completa
     
     const IMG_W = 300;
     const IMG_H = 300;
     
-    // Crear las 9 piezas
+    // Crear datos de las 9 piezas
     const piecesData = [];
     for (let row = 0; row < 3; row++) {
         for (let col = 0; col < 3; col++) {
-            const correctIndex = row * 3 + col;
-            const xPos = -col * 100;
-            const yPos = -row * 100;
             piecesData.push({
-                id: correctIndex,
-                bgPos: `${xPos}px ${yPos}px`,
-                row: row,
-                col: col
+                id: row * 3 + col,
+                bgPos: `${-col * 100}px ${-row * 100}px`
             });
         }
     }
@@ -242,21 +283,31 @@
     }
     
     let availablePieces = [];
-    let boardSlots = [];
+    let boardSlots = Array(9).fill(null);
     
     const piecesContainer = document.getElementById('piecesContainer');
     const boardContainer = document.getElementById('boardContainer');
     const statusMessage = document.getElementById('statusMessage');
-    const biographyDiv = document.getElementById('biography');
     const resetBtn = document.getElementById('resetBtn');
+    const modal = document.getElementById('completionModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const closeSpan = document.querySelector('.close-modal');
+    const fullImage = document.getElementById('fullImage');
     
-    let draggedPiece = null;
-    let draggedPieceId = null;
-    
-    function setPieceBackground(element, bgPos) {
+    function setBackground(element, bgPos) {
         element.style.backgroundImage = `url('${PAINTING_URL}')`;
         element.style.backgroundSize = `${IMG_W}px ${IMG_H}px`;
         element.style.backgroundPosition = bgPos;
+    }
+    
+    function showModal() {
+        fullImage.src = PAINTING_URL;
+        modal.style.display = 'block';
+        statusMessage.innerHTML = '🎉 ¡FELICITACIONES! Completaste la obra 🎉';
+    }
+    
+    function closeModal() {
+        modal.style.display = 'none';
     }
     
     function renderPieces() {
@@ -264,23 +315,23 @@
         availablePieces.forEach((piece, idx) => {
             const pieceDiv = document.createElement('div');
             pieceDiv.className = 'piece';
-            setPieceBackground(pieceDiv, piece.bgPos);
+            setBackground(pieceDiv, piece.bgPos);
             pieceDiv.setAttribute('draggable', 'true');
-            pieceDiv.setAttribute('data-piece-id', piece.id);
-            pieceDiv.setAttribute('data-piece-index', idx);
+            pieceDiv.setAttribute('data-id', piece.id);
+            pieceDiv.setAttribute('data-index', idx);
             
-            pieceDiv.addEventListener('dragstart', (e) => {
-                draggedPiece = piece;
-                draggedPieceId = idx;
-                pieceDiv.classList.add('dragging');
-                e.dataTransfer.setData('text/plain', JSON.stringify({id: piece.id, index: idx}));
+            pieceDiv.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text/plain', JSON.stringify({
+                    id: piece.id,
+                    index: idx,
+                    type: 'piece'
+                }));
                 e.dataTransfer.effectAllowed = 'move';
+                this.classList.add('dragging');
             });
             
-            pieceDiv.addEventListener('dragend', (e) => {
-                pieceDiv.classList.remove('dragging');
-                draggedPiece = null;
-                draggedPieceId = null;
+            pieceDiv.addEventListener('dragend', function(e) {
+                this.classList.remove('dragging');
             });
             
             piecesContainer.appendChild(pieceDiv);
@@ -290,82 +341,69 @@
     function renderBoard() {
         boardContainer.innerHTML = '';
         for (let i = 0; i < boardSlots.length; i++) {
-            const slotDiv = document.createElement('div');
-            slotDiv.className = 'slot';
+            const slot = document.createElement('div');
+            slot.className = 'slot';
             const piece = boardSlots[i];
             
-            if (piece !== null) {
-                slotDiv.classList.add('filled');
-                setPieceBackground(slotDiv, piece.bgPos);
+            if (piece) {
+                slot.classList.add('filled');
+                setBackground(slot, piece.bgPos);
             }
             
-            slotDiv.setAttribute('data-slot-index', i);
+            slot.setAttribute('data-slot', i);
             
-            slotDiv.addEventListener('dragover', (e) => {
+            slot.addEventListener('dragover', function(e) {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
-                slotDiv.classList.add('drag-over');
+                this.classList.add('drag-over');
             });
             
-            slotDiv.addEventListener('dragleave', (e) => {
-                slotDiv.classList.remove('drag-over');
+            slot.addEventListener('dragleave', function(e) {
+                this.classList.remove('drag-over');
             });
             
-            slotDiv.addEventListener('drop', (e) => {
+            slot.addEventListener('drop', function(e) {
                 e.preventDefault();
-                slotDiv.classList.remove('drag-over');
+                this.classList.remove('drag-over');
+                
+                const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const slotIndex = parseInt(this.getAttribute('data-slot'));
+                const draggedPiece = availablePieces[dragData.index];
                 
                 if (!draggedPiece) return;
                 
-                const slotIndex = parseInt(slotDiv.getAttribute('data-slot-index'));
-                const targetPiece = boardSlots[slotIndex];
-                
-                // Caso 1: Slot vacío
-                if (targetPiece === null) {
-                    if (draggedPiece.id === slotIndex) {
-                        // Colocar pieza correctamente
+                // Verificar si la pieza va en este slot
+                if (draggedPiece.id === slotIndex) {
+                    // Colocar pieza correctamente
+                    if (boardSlots[slotIndex] === null) {
                         boardSlots[slotIndex] = draggedPiece;
-                        availablePieces.splice(draggedPieceId, 1);
+                        availablePieces.splice(dragData.index, 1);
                         renderPieces();
                         renderBoard();
-                        statusMessage.innerText = '✅ ¡Bien colocado!';
-                        setTimeout(() => {
-                            if(!checkWin()) statusMessage.innerText = '🎯 Sigue arrastrando';
-                        }, 1000);
-                        checkWin();
+                        statusMessage.textContent = '✅ ¡Correcto!';
+                        
+                        if (checkWin()) {
+                            showModal();
+                        } else {
+                            setTimeout(() => {
+                                statusMessage.textContent = '🎯 Sigue arrastrando';
+                            }, 1000);
+                        }
                     } else {
-                        statusMessage.innerText = '❌ Esta pieza no pertenece aquí';
+                        statusMessage.textContent = '⚠️ Ese lugar ya tiene una pieza';
                         setTimeout(() => {
-                            if(!checkWin()) statusMessage.innerText = '🎯 Arrastra la pieza correcta';
+                            if(!checkWin()) statusMessage.textContent = '🎯 Arrastra la pieza correcta';
                         }, 1000);
                     }
-                } 
-                // Caso 2: Slot ocupado (intercambiar)
-                else {
-                    if (draggedPiece.id === slotIndex && targetPiece.id === draggedPieceId) {
-                        // Intercambiar piezas
-                        boardSlots[slotIndex] = draggedPiece;
-                        availablePieces[draggedPieceId] = targetPiece;
-                        renderPieces();
-                        renderBoard();
-                        statusMessage.innerText = '🔄 ¡Intercambio exitoso!';
-                        setTimeout(() => {
-                            if(!checkWin()) statusMessage.innerText = '🎯 Continúa';
-                        }, 1000);
-                        checkWin();
-                    } else {
-                        statusMessage.innerText = '❌ No puedes intercambiar esas piezas';
-                        setTimeout(() => {
-                            if(!checkWin()) statusMessage.innerText = '🎯 Arrastra la pieza correcta';
-                        }, 1000);
-                    }
+                } else {
+                    statusMessage.textContent = '❌ Esta pieza no va aquí';
+                    setTimeout(() => {
+                        if(!checkWin()) statusMessage.textContent = '🎯 Arrastra la pieza correcta';
+                    }, 1000);
                 }
-                
-                draggedPiece = null;
-                draggedPieceId = null;
             });
             
-            boardContainer.appendChild(slotDiv);
+            boardContainer.appendChild(slot);
         }
     }
     
@@ -373,34 +411,37 @@
         const isComplete = boardSlots.every((slot, idx) => {
             return slot !== null && slot.id === idx;
         });
-        
-        if (isComplete) {
-            statusMessage.innerHTML = '🎉 ¡OBRA COMPLETA! 🎉';
-            biographyDiv.style.display = 'block';
-            return true;
-        }
-        return false;
+        return isComplete;
     }
     
     function resetGame() {
-        let allPieces = [...piecesData];
-        allPieces = shuffleArray(allPieces);
-        availablePieces = [...allPieces];
+        availablePieces = shuffleArray([...piecesData]);
         boardSlots = Array(9).fill(null);
         renderPieces();
         renderBoard();
-        statusMessage.innerHTML = '🎯 Arrastra las piezas a su lugar correcto';
-        biographyDiv.style.display = 'none';
+        statusMessage.textContent = '🎯 Arrastra las piezas a su lugar correcto';
+        closeModal();
     }
     
-    // Verificar que la imagen cargue
+    // Verificar imagen
     const testImg = new Image();
     testImg.onerror = () => {
-        statusMessage.innerHTML = '⚠️ No se encuentra la imagen. Coloca "PINTURA_PALMIRA.jpg" en la misma carpeta';
+        statusMessage.innerHTML = '⚠️ ERROR: No se encuentra la imagen. Asegúrate de que la imagen está en la misma carpeta';
     };
     testImg.src = PAINTING_URL;
     
+    // Eventos del modal
     resetBtn.addEventListener('click', resetGame);
+    closeModalBtn.addEventListener('click', closeModal);
+    closeSpan.addEventListener('click', closeModal);
+    
+    // Cerrar modal si se hace clic fuera del contenido
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
     resetGame();
 </script>
 </body>
